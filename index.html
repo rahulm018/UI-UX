@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Dynamic Page Title -->
+    <title>PPAP-SPLR-2025-03358 - BEARING / CR0004</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📄</text></svg>">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="//unpkg.com/alpinejs" defer></script>
+
+    <style>
+        :root {
+            --header-height: 65px;
+            --nav-height: 50px;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Tailwind gray-50 */
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        /* Base Statuses */
+        .status-approved { background-color: #dcfce7; color: #166534; }
+        .status-pending { background-color: #fef9c3; color: #854d0e; }
+        .status-submitted { background-color: #e0e7ff; color: #3730a3; }
+        .status-rejected { background-color: #fee2e2; color: #991b1b; }
+        .status-reviewed { background-color: #cffafe; color: #0891b2; }
+        .status-overdue { background-color: #fee2e2; color: #991b1b; }
+
+        /* New Detailed Statuses */
+        .status-requested { background-color: #fef9c3; color: #854d0e; } /* Amber */
+        .status-review-pending { background-color: #e0e7ff; color: #3730a3; } /* Indigo */
+        .status-approval-pending { background-color: #ffedd5; color: #9a3412; } /* Orange */
+        .status-interim-approved { background-color: #cffafe; color: #0891b2; } /* Cyan */
+
+        .phase-status-overview .status-badge {
+            padding: 2px 10px;
+            font-size: 0.75rem;
+        }
+
+        /* Stepper styles */
+        .stepper-item { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; cursor: pointer; }
+        .stepper-item:not(:last-child)::after { content: ''; position: absolute; left: 50%; top: 20px; transform: translateX(20px); height: 3px; background-color: #e5e7eb; width: calc(100% - 40px); z-index: 0; }
+        .stepper-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; z-index: 1; position: relative; transition: all 0.3s ease; border: 3px solid #e5e7eb; background-color: white; color: #4b5563; }
+        .stepper-item.active .stepper-circle { border-color: #4f46e5; background-color: #eef2ff; color: #4f46e5; }
+        .stepper-item.active .stepper-label { font-weight: 700; color: #4f46e5;}
+        .stepper-item.completed .stepper-circle { background-color: #4f46e5; color: white; border-color: #4f46e5; }
+        .stepper-item.completed:not(:last-child)::after { background-color: #4f46e5; }
+        .stepper-item.overdue.active .stepper-circle { border-color: #ef4444; color: #ef4444; background-color: #fee2e2; }
+        .stepper-item.overdue.active .stepper-label { color: #ef4444; }
+
+
+        .tab-link { transition: all 0.2s ease; border-bottom: 3px solid transparent; }
+        .tab-link.active { color: #4f46e5; border-bottom-color: #4f46e5; font-weight: 600; }
+
+        .req-badge {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.75rem;
+            color: white;
+            display: inline-block;
+        }
+        
+        .week-badge {
+            background-color: #e5e7eb;
+            color: #4b5563;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            border-radius: 6px;
+            margin-left: 4px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .req-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: white;
+        }
+
+        /* Sticky Header */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 1rem;
+        }
+
+        /* Sticky Table Headers */
+        .sticky-table-header {
+            position: sticky;
+            top: 100px; /* Adjusted for sticky header height */
+            background-color: white;
+            z-index: 40;
+        }
+
+         /* Sticky Phase Headers */
+         .sticky-phase-header {
+            position: sticky;
+            top: 158px; /* Adjusted for header + tabs height */
+            background: #f8fafc;
+            z-index: 30;
+            padding-top: 1rem;
+            padding-bottom: 0.5rem;
+        }
+        
+        /* New Action Menu Styles */
+        .actions-menu-container {
+            position: relative;
+        }
+        .actions-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 4px); /* Position below the button */
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            z-index: 60; /* Higher z-index */
+            width: 200px;
+            padding: 4px;
+        }
+        .actions-menu-container:hover .actions-menu {
+            display: block;
+        }
+        .action-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            border-radius: 6px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            color: #374151; /* gray-700 */
+        }
+        .action-item i {
+            stroke-width: 2;
+        }
+        /* Action-specific colors */
+        .action-approve { color: #15803d; } /* green-700 */
+        .action-approve:hover { background-color: #dcfce7; } /* green-100 */
+
+        .action-reject { color: #b91c1c; } /* red-700 */
+        .action-reject:hover { background-color: #fee2e2; } /* red-100 */
+
+        .action-review { color: #0e7490; } /* cyan-700 */
+        .action-review:hover { background-color: #cffafe; } /* cyan-100 */
+
+        .action-submit { color: #4338ca; } /* indigo-700 */
+        .action-submit:hover { background-color: #e0e7ff; } /* indigo-100 */
+
+        .action-submit-change { color: #1d4ed8; } /* blue-700 */
+        .action-submit-change:hover { background-color: #dbeafe; } /* blue-100 */
+
+        .action-date-change { color: #b45309; } /* amber-700 */
+        .action-date-change:hover { background-color: #fef3c7; } /* amber-100 */
+
+        .action-date-change-review { color: #7e22ce; } /* purple-700 */
+        .action-date-change-review:hover { background-color: #f3e8ff; } /* purple-100 */
+
+        /* New styles for collapsible section */
+        .collapsible-content {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.4s ease-out, padding-top 0.4s ease-out, margin-top 0.4s ease-out;
+        }
+        .collapsible-content > div {
+            overflow: hidden;
+        }
+        .collapsible-content.expanded {
+            grid-template-rows: 1fr;
+            margin-top: 1.5rem; /* 24px */
+        }
+        .collapsible-content.expanded > div {
+            padding-top: 1.5rem; /* 24px */
+            border-top: 1px solid #e5e7eb;
+        }
+
+        /* Video Modal Styles */
+        .aspect-w-16 { position: relative; padding-bottom: 56.25%; } /* 16:9 */
+        .aspect-h-9 { height: 0; }
+        .aspect-w-16 > iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+
+        /* Responsive table styles */
+        @media (max-width: 768px) {
+            .responsive-table {
+                display: block;
+            }
+            .responsive-table thead {
+                display: none;
+            }
+            .responsive-table tbody, .responsive-table tr, .responsive-table td {
+                display: block;
+                width: 100%;
+            }
+            .responsive-table tr {
+                border: 1px solid #e5e7eb;
+                border-radius: 0.75rem;
+                margin-bottom: 1rem;
+                padding: 1rem;
+            }
+            .responsive-table td {
+                padding-left: 50%;
+                position: relative;
+                text-align: right;
+                border-bottom: 1px solid #f3f4f6;
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+            }
+            .responsive-table td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 1rem;
+                width: calc(50% - 2rem);
+                padding-right: 10px;
+                white-space: nowrap;
+                text-align: left;
+                font-weight: 600;
+                color: #4b5563;
+            }
+            .responsive-table td:last-child {
+                border-bottom: none;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-white/90 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between py-3">
+                <a href="./index.html" class="flex items-center gap-2" title="Back to Hub">
+                    <span class="inline-flex h-8 w-8 rounded-lg bg-indigo-600 text-white items-center justify-center font-extrabold">P</span>
+                    <span class="text-sm font-semibold text-gray-900">PPAP Hub</span>
+                </a>
+                <nav class="flex items-center gap-1">
+                    <a href="./PPAP Creation Page.html" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:text-indigo-700 hover:bg-indigo-50">Creation</a>
+                    <a href="./PPAP View Page.html" class="px-3 py-2 text-sm font-medium rounded-md bg-indigo-600 text-white hover:bg-indigo-700">View</a>
+                    <a href="./Bulk Submit.html" class="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:text-indigo-700 hover:bg-indigo-50">Bulk Submit</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-screen-2xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+        <!-- Header -->
+        <header class="sticky-header">
+            <!-- Breadcrumbs -->
+            <nav class="text-sm font-medium text-gray-500 mb-2">
+                <a href="#" class="hover:text-indigo-600">Home</a> &gt;
+                <a href="#" class="hover:text-indigo-600">PPAPs</a> &gt;
+                <span class="text-gray-800">PPAP-SPLR-2025-03358</span>
+            </nav>
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">PPAP-SPLR-2025-03358</h1>
+                    <p class="text-gray-500">Workflow Detail</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button id="open-video-modal" class="p-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 hover:border-gray-400 flex items-center" title="Click for reference material">
+                        <i data-lucide="book-open" class="w-5 h-5"></i>
+                    </button>
+                    <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 hover:border-gray-400 flex items-center gap-2" title="View status change history"> <i data-lucide="history" class="w-4 h-4"></i>Status History </button>
+                    <button class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 hover:border-gray-400 flex items-center gap-2" title="View the submission checklist"> <i data-lucide="check-square" class="w-4 h-4"></i>View Checklist </button>
+                    <button id="exportBtn" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg shadow-sm hover:bg-indigo-700 flex items-center gap-2" title="Export this PPAP report as a PDF"> <i data-lucide="download-cloud" class="w-4 h-4"></i><span id="exportBtnText">Export</span> </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stepper -->
+        <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-sm">
+            <div class="flex">
+                <div class="stepper-item completed" onclick="alert('Viewing New stage details')"><div class="stepper-circle"><i data-lucide="check" class="w-6 h-6"></i></div><p class="stepper-label text-center text-sm font-medium mt-2 text-gray-700">New</p></div>
+                <div class="stepper-item completed" onclick="alert('Viewing Draft stage details')"><div class="stepper-circle"><i data-lucide="check" class="w-6 h-6"></i></div><p class="stepper-label text-center text-sm font-medium mt-2 text-gray-700">Draft</p></div>
+                <div class="stepper-item active overdue"><div class="stepper-circle">3</div><p class="stepper-label text-center text-sm mt-2">Requested</p></div>
+                <div class="stepper-item"><div class="stepper-circle">4</div><p class="stepper-label text-center text-sm font-medium mt-2 text-gray-500">In Progress</p></div>
+                <div class="stepper-item"><div class="stepper-circle">5</div><p class="stepper-label text-center text-sm font-medium mt-2 text-gray-500">Approved</p></div>
+                <div class="stepper-item"><div class="stepper-circle"><i data-lucide="lock" class="w-5 h-5"></i></div><p class="stepper-label text-center text-sm font-medium mt-2 text-gray-500">Closed</p></div>
+            </div>
+        </div>
+
+        <!-- Details Card -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <div id="detailsCardHeader" class="cursor-pointer" >
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-900">Details</h2>
+                    <button class="text-sm font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"> 
+                        <span id="toggleDetailsText">More Details</span>
+                        <i id="chevronIcon" data-lucide="chevron-down" class="w-5 h-5 transition-transform duration-300"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
+                 <div><span class="text-gray-500">PPAP ID:</span><p class="font-medium text-gray-800">PPAP-SPLR-2025-03358</p></div>
+                 <div><span class="text-gray-500">Part Name:</span><p class="font-medium text-gray-800">BEARING / CR0004</p></div>
+                 <div><span class="text-gray-500">Supplier:</span><p class="font-medium text-gray-800">Global Bearings Inc.</p></div>
+                 <div><span class="text-gray-500">Status:</span><p class="font-medium"><span class="status-badge status-requested">Requested</span></p></div>
+            </div>
+            <div id="additionalDetails" class="collapsible-content">
+                <div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
+                        <div><span class="text-gray-500">Customer:</span><p class="font-medium text-gray-800">AutoMotive Solutions Ltd.</p></div>
+                        <div><span class="text-gray-500">Creation Date:</span><p class="font-medium text-gray-800 date-value">15 May 2025</p></div>
+                        <div><span class="text-gray-500">Last Updated:</span><p class="font-medium text-gray-800">2 days ago (04 Sep 2025)</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab Navigation & Filters -->
+        <div class="sticky-table-header">
+            <div class="border-b border-gray-200 bg-white"><nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs"><a href="#" class="tab-link active whitespace-nowrap py-4 px-1 text-sm flex items-center gap-2"><i data-lucide="list-checks" class="w-4 h-4"></i>Elements</a><a href="#" class="tab-link text-gray-500 hover:text-gray-700 whitespace-nowrap py-4 px-1 text-sm flex items-center gap-2" title="View conversation history"><i data-lucide="message-square" class="w-4 h-4"></i>Conversation</a><a href="#" class="tab-link text-gray-500 hover:text-gray-700 whitespace-nowrap py-4 px-1 text-sm flex items-center gap-2" title="Part Submission Warrant"><i data-lucide="file-signature" class="w-4 h-4"></i>Part Submission Warrant</a><a href="#" class="tab-link text-gray-500 hover:text-gray-700 whitespace-nowrap py-4 px-1 text-sm flex items-center gap-2" title="Upload new documents"><i data-lucide="upload-cloud" class="w-4 h-4"></i>Upload Document</a><a href="#" class="tab-link text-gray-500 hover:text-gray-700 whitespace-nowrap py-4 px-1 text-sm flex items-center gap-2" title="Submit your reviews"><i data-lucide="edit" class="w-4 h-4"></i>Submit Reviews</a></nav></div>
+        </div>
+
+        <!-- Phases Content -->
+        <div class="space-y-12 text-sm">
+            <!-- Phase 1 -->
+            <section id="phase1">
+                <div class="sticky-phase-header flex items-center gap-4">
+                    <h3 class="text-xl font-semibold text-gray-900">Phase 1: Planning & Definition</h3>
+                    <span class="status-badge status-reviewed">In Progress</span>
+                </div>
+                <div class="phase-status-overview flex items-center gap-x-4 gap-y-2 flex-wrap mb-4 px-1"></div>
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto">
+                    <table class="w-full responsive-table element-table">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="message-square" class="w-4 h-4 mx-auto" title="Comments"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="clock" class="w-4 h-4 mx-auto" title="History"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="paperclip" class="w-4 h-4 mx-auto" title="Attachments"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="menu" class="w-4 h-4 mx-auto" title="Details"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="more-vertical" class="w-4 h-4 mx-auto" title="More Actions"></i></th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">#</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer sort-header" data-sort="element">Element</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Req.</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer sort-header" data-sort="status">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submission</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Review</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr class="hover:bg-gray-50">
+                                <td data-label="Comments" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Comments"><i data-lucide="message-square" class="w-4 h-4 text-blue-500"></i></button></td>
+                                <td data-label="History" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i data-lucide="clock" class="w-4 h-4 text-amber-500"></i></button></td>
+                                <td data-label="Attachments" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Attachments"><i data-lucide="paperclip" class="w-4 h-4 text-teal-500"></i></button></td>
+                                <td data-label="Details" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i data-lucide="menu" class="w-4 h-4 text-slate-500"></i></button></td>
+                                <td data-label="More Actions" class="px-1 py-4 text-center actions-menu-container">
+                                    <button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i data-lucide="more-vertical" class="w-5 h-5 text-slate-500"></i></button>
+                                    <div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div>
+                                </td>
+                                <td data-label="#" class="px-4 py-4">1</td>
+                                <td data-label="Element" class="px-4 py-4 font-medium text-gray-900">Design Records (Preliminary)</td>
+                                <td data-label="Req." class="px-4 py-4 text-center"><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td>
+                                <td data-label="Status" class="px-4 py-4"><span class="status-badge status-approved">Approved</span></td>
+                                <td data-label="Submission" class="px-4 py-4">
+                                    <p class="date-value">Due: 27 May 2025</p>
+                                    <p>By: Jason Taylor</p>
+                                    <p class="date-value font-semibold text-gray-600">Actual: 26 May 2025</p>
+                                </td>
+                                <td data-label="Review" class="px-4 py-4">
+                                    <p class="date-value">Due: 30 May 2025</p>
+                                    <p class="flex items-center gap-1">By: 
+                                        <span class="inline-block h-6 w-6 rounded-full bg-blue-200 text-blue-800 flex items-center justify-center text-xs font-bold" title="Amit Mishra">AM</span>
+                                        <span class="inline-block h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center text-xs font-bold" title="John Doe">JD</span>
+                                    </p>
+                                    <p class="date-value font-semibold text-gray-600">Actual: 31 May 2025</p>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td data-label="Comments" class="px-1 py-4 text-center"></td>
+                                <td data-label="History" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i data-lucide="clock" class="w-4 h-4 text-amber-500"></i></button></td>
+                                <td data-label="Attachments" class="px-1 py-4 text-center"></td>
+                                <td data-label="Details" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i data-lucide="menu" class="w-4 h-4 text-slate-500"></i></button></td>
+                                <td data-label="More Actions" class="px-1 py-4 text-center actions-menu-container">
+                                     <button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i data-lucide="more-vertical" class="w-5 h-5 text-slate-500"></i></button>
+                                     <div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div>
+                                </td>
+                                <td data-label="#" class="px-4 py-4">2</td>
+                                <td data-label="Element" class="px-4 py-4 font-medium text-gray-900">Authorized Engineering Changes</td>
+                                <td data-label="Req." class="px-4 py-4 text-center"><span class="req-icon bg-blue-600" title="If Applicable">IA</span></td>
+                                <td data-label="Status" class="px-4 py-4"><span class="status-badge status-interim-approved">Interim Approved</span></td>
+                                <td data-label="Submission" class="px-4 py-4"><p>By: Jason Taylor</p><p class="date-value font-semibold text-gray-600">Actual: 26 May 2025</p></td>
+                                <td data-label="Review" class="px-4 py-4"><p>By: <span title="Amit Mishra">A. Mishra</span></p><p class="date-value font-semibold text-gray-600">Actual: 31 May 2025</p></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td data-label="Comments" class="px-1 py-4 text-center"></td>
+                                <td data-label="History" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i data-lucide="clock" class="w-4 h-4 text-amber-500"></i></button></td>
+                                <td data-label="Attachments" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Attachments"><i data-lucide="paperclip" class="w-4 h-4 text-teal-500"></i></button></td>
+                                <td data-label="Details" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i data-lucide="menu" class="w-4 h-4 text-slate-500"></i></button></td>
+                                <td data-label="More Actions" class="px-1 py-4 text-center actions-menu-container">
+                                     <button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i data-lucide="more-vertical" class="w-5 h-5 text-slate-500"></i></button>
+                                     <div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div>
+                                </td>
+                                <td data-label="#" class="px-4 py-4">3</td>
+                                <td data-label="Element" class="px-4 py-4 font-medium text-gray-900">Customer Engineering Approval</td>
+                                <td data-label="Req." class="px-4 py-4 text-center"><span class="req-icon bg-purple-600" title="As Requested">AR</span></td>
+                                <td data-label="Status" class="px-4 py-4"><span class="status-badge status-approval-pending">Approval Pending</span></td>
+                                <td data-label="Submission" class="px-4 py-4"><p>By: Sarah Chen</p><p class="date-value font-semibold text-gray-600">Actual: 01 Jun 2025</p></td>
+                                <td data-label="Review" class="px-4 py-4"><p>By: <span title="John Doe">J. Doe</span></p><p class="date-value font-semibold text-gray-600">Actual: 05 Jun 2025</p></td>
+                            </tr>
+                             <tr class="hover:bg-gray-50 overdue-row">
+                                <td data-label="Comments" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Comments"><i data-lucide="message-square" class="w-4 h-4 text-blue-500"></i></button></td>
+                                <td data-label="History" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i data-lucide="clock" class="w-4 h-4 text-amber-500"></i></button></td>
+                                <td data-label="Attachments" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Attachments"><i data-lucide="paperclip" class="w-4 h-4 text-teal-500"></i></button></td>
+                                <td data-label="Details" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i data-lucide="menu" class="w-4 h-4 text-slate-500"></i></button></td>
+                                <td data-label="More Actions" class="px-1 py-4 text-center actions-menu-container">
+                                     <button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i data-lucide="more-vertical" class="w-5 h-5 text-slate-500"></i></button>
+                                     <div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div>
+                                </td>
+                                <td data-label="#" class="px-4 py-4">4</td>
+                                <td data-label="Element" class="px-4 py-4 font-medium text-gray-900">DFMEA (initial draft)</td>
+                                <td data-label="Req." class="px-4 py-4 text-center"><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td>
+                                <td data-label="Status" class="px-4 py-4"><span class="status-badge status-review-pending">Review Pending</span></td>
+                                <td data-label="Submission" class="px-4 py-4">
+                                    <p class="date-value">Due: 02 Jun 2025</p>
+                                    <p>By: Mike Rossi</p>
+                                    <p class="date-value font-semibold text-gray-600">Actual: 02 Jun 2025</p>
+                                </td>
+                                <td data-label="Review" class="px-4 py-4">
+                                    <p class="date-value text-red-600 font-bold overdue-date">Due: 06 Jun 2025</p>
+                                    <p>By: <span title="Amit Mishra">A. Mishra</span></p>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td data-label="Comments" class="px-1 py-4 text-center"></td>
+                                <td data-label="History" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i data-lucide="clock" class="w-4 h-4 text-amber-500"></i></button></td>
+                                <td data-label="Attachments" class="px-1 py-4 text-center"></td>
+                                <td data-label="Details" class="px-1 py-4 text-center"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i data-lucide="menu" class="w-4 h-4 text-slate-500"></i></button></td>
+                                <td data-label="More Actions" class="px-1 py-4 text-center actions-menu-container">
+                                     <button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i data-lucide="more-vertical" class="w-5 h-5 text-slate-500"></i></button>
+                                     <div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div>
+                                </td>
+                                <td data-label="#" class="px-4 py-4">5</td>
+                                <td data-label="Element" class="px-4 py-4 font-medium text-gray-900">Process Flow Diagram (conceptual)</td>
+                                <td data-label="Req." class="px-4 py-4 text-center"><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td>
+                                <td data-label="Status" class="px-4 py-4"><span class="status-badge status-rejected">Rejected</span></td>
+                                <td data-label="Submission" class="px-4 py-4">
+                                    <p class="date-value">Due: 05 Jun 2025</p>
+                                    <p>By: Mike Rossi</p>
+                                </td>
+                                <td data-label="Review" class="px-4 py-4">
+                                    <p class="date-value">Due: 10 Jun 2025</p>
+                                    <p>By: <span title="Amit Mishra">A. Mishra</span></p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <!-- Phase 2 -->
+            <section id="phase2">
+                <div class="sticky-phase-header flex items-center gap-4"><h3 class="text-xl font-semibold text-gray-900">Phase 2: Design & Development</h3><span class="status-badge status-pending">Not Started</span></div>
+                <div class="phase-status-overview flex items-center gap-x-4 gap-y-2 flex-wrap mb-4 px-1"></div>
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto">
+                    <table class="w-full responsive-table element-table">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="message-square" class="w-4 h-4 mx-auto" title="Comments"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="clock" class="w-4 h-4 mx-auto" title="History"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="paperclip" class="w-4 h-4 mx-auto" title="Attachments"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="menu" class="w-4 h-4 mx-auto" title="Details"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="more-vertical" class="w-4 h-4 mx-auto" title="More Actions"></i></th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">#</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer sort-header" data-sort="element">Element</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Req.</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer sort-header" data-sort="status">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submission</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Review</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">6</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Updated DFMEA</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-requested">Requested</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 20 Jun 2025</p><p>By: Mike Rossi</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 25 Jun 2025</p><p>By: A. Mishra</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">7</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Preliminary PFMEA (draft)</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-requested">Requested</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 22 Jun 2025</p><p>By: Jane Doe</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 27 Jun 2025</p><p>By: J. Doe</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">8</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Draft Control Plan (prototype)</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-approved">Approved</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 25 Jun 2025</p><p>By: Sarah Chen</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 30 Jun 2025</p><p>By: A. Mishra</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">9</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Material & Performance Test Plan</td><td class="px-4 py-4 text-center" data-label="Req."><span class="req-icon bg-blue-600" title="If Applicable">IA</span></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 28 Jun 2025</p><p>By: Jason Taylor</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 03 Jul 2025</p><p>By: J. Doe</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">10</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Preliminary MSA Plan (gage strategy)</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 30 Jun 2025</p><p>By: Sarah Chen</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 05 Jul 2025</p><p>By: A. Mishra</p></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+             <!-- Phase 3 -->
+            <section id="phase3">
+                <div class="sticky-phase-header flex items-center gap-4"><h3 class="text-xl font-semibold text-gray-900">Phase 3: Process Design & Development</h3><span class="status-badge status-pending">Not Started</span></div>
+                <div class="phase-status-overview flex items-center gap-x-4 gap-y-2 flex-wrap mb-4 px-1"></div>
+                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto">
+                    <table class="w-full responsive-table element-table">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="message-square" class="w-4 h-4 mx-auto" title="Comments"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="clock" class="w-4 h-4 mx-auto" title="History"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="paperclip" class="w-4 h-4 mx-auto" title="Attachments"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="menu" class="w-4 h-4 mx-auto" title="Details"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="more-vertical" class="w-4 h-4 mx-auto" title="More Actions"></i></th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">#</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer sort-header" data-sort="element">Element</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Req.</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer sort-header" data-sort="status">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submission</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Review</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">11</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Finalized PFMEA</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 01 Jul 2025</p><p>By: Jane Doe</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 06 Jul 2025</p><p>By: A. Mishra</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">12</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Control Plan (Pre-launch version)</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 05 Jul 2025</p><p>By: Sarah Chen</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 10 Jul 2025</p><p>By: A. Mishra</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">13</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Gage R&R / MSA Studies (initial)</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 08 Jul 2025</p><p>By: Jason Taylor</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 13 Jul 2025</p><p>By: J. Doe</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">14</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Dimensional Results (preliminary layout)</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 10 Jul 2025</p><p>By: Jason Taylor</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 15 Jul 2025</p><p>By: J. Doe</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">15</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Material Test Reports (trial runs)</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 12 Jul 2025</p><p>By: Sarah Chen</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 17 Jul 2025</p><p>By: A. Mishra</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">16</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">SPC Plan defined</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 15 Jul 2025</p><p>By: Mike Rossi</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 20 Jul 2025</p><p>By: J. Doe</p></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+             <!-- Phase 4 -->
+            <section id="phase4">
+                <div class="sticky-phase-header flex items-center gap-4"><h3 class="text-xl font-semibold text-gray-900">Phase 4: Product & Process Validation</h3><span class="status-badge status-pending">Not Started</span></div>
+                <div class="phase-status-overview flex items-center gap-x-4 gap-y-2 flex-wrap mb-4 px-1"></div>
+                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto">
+                    <table class="w-full responsive-table element-table">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="message-square" class="w-4 h-4 mx-auto" title="Comments"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="clock" class="w-4 h-4 mx-auto" title="History"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="paperclip" class="w-4 h-4 mx-auto" title="Attachments"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="menu" class="w-4 h-4 mx-auto" title="Details"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="more-vertical" class="w-4 h-4 mx-auto" title="More Actions"></i></th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">#</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer sort-header" data-sort="element">Element</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Req.</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer sort-header" data-sort="status">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submission</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Review</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">17</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Final PFMEA</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 22 Jul 2025</p><p>By: Jane Doe</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 27 Jul 2025</p><p>By: A. Mishra</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">18</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Final Control Plan (Production version)</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 24 Jul 2025</p><p>By: Sarah Chen</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 29 Jul 2025</p><p>By: J. Doe</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">19</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">MSA Studies (complete)</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 26 Jul 2025</p><p>By: Jason Taylor</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 31 Jul 2025</p><p>By: A. Mishra</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">20</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Dimensional Results (full layout)</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 28 Jul 2025</p><p>By: Jason Taylor</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 02 Aug 2025</p><p>By: J. Doe</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">21</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Records of Material / Performance Tests</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 30 Jul 2025</p><p>By: Sarah Chen</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 04 Aug 2025</p><p>By: A. Mishra</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">22</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Initial Process Studies (Cp, Cpk)</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 01 Aug 2025</p><p>By: Mike Rossi</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 06 Aug 2025</p><p>By: J. Doe</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">23</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Appearance Approval Report</td><td class="px-4 py-4 text-center" data-label="Req."><span class="req-icon bg-blue-600" title="If Applicable">IA</span></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 03 Aug 2025</p><p>By: Jane Doe</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 08 Aug 2025</p><p>By: A. Mishra</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">24</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Checking Aids documentation</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 05 Aug 2025</p><p>By: Jason Taylor</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 10 Aug 2025</p><p>By: J. Doe</p></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+             <!-- Phase 5 -->
+            <section id="phase5">
+                <div class="sticky-phase-header flex items-center gap-4"><h3 class="text-xl font-semibold text-gray-900">Phase 5: Feedback, Assessment & Corrective Action</h3><span class="status-badge status-pending">Not Started</span></div>
+                <div class="phase-status-overview flex items-center gap-x-4 gap-y-2 flex-wrap mb-4 px-1"></div>
+                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-x-auto">
+                    <table class="w-full responsive-table element-table">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="message-square" class="w-4 h-4 mx-auto" title="Comments"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="clock" class="w-4 h-4 mx-auto" title="History"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="paperclip" class="w-4 h-4 mx-auto" title="Attachments"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="menu" class="w-4 h-4 mx-auto" title="Details"></i></th>
+                                <th class="px-1 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-9"><i data-lucide="more-vertical" class="w-4 h-4 mx-auto" title="More Actions"></i></th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">#</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer sort-header" data-sort="element">Element</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Req.</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer sort-header" data-sort="status">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submission</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Review</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">25</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Master Sample</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 12 Aug 2025</p><p>By: Mike Rossi</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 17 Aug 2025</p><p>By: A. Mishra</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">26</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Customer-Specific Requirements</td><td class="px-4 py-4 text-center" data-label="Req."><span class="req-icon bg-purple-600" title="As Requested">AR</span></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 14 Aug 2025</p><p>By: Sarah Chen</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 19 Aug 2025</p><p>By: J. Doe</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">27</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Part Submission Warrant (PSW) signed-off</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 16 Aug 2025</p><p>By: Mike Rossi</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 21 Aug 2025</p><p>By: A. Mishra</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">28</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Ongoing SPC and capability studies</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 18 Aug 2025</p><p>By: Jason Taylor</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 23 Aug 2025</p><p>By: J. Doe</p></td></tr>
+                             <tr><td class="px-1 py-4 text-center" data-label="Comments"></td><td class="px-1 py-4 text-center" data-label="History"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="History"><i class="w-4 h-4 text-amber-500" data-lucide="clock"></i></button></td><td class="px-1 py-4 text-center" data-label="Attachments"></td><td class="px-1 py-4 text-center" data-label="Details"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="Details"><i class="w-4 h-4 text-slate-500" data-lucide="menu"></i></button></td><td class="px-1 py-4 text-center actions-menu-container" data-label="More Actions"><button class="p-1 text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300" title="More Options"><i class="w-5 h-5 text-slate-500" data-lucide="more-vertical"></i></button><div class="actions-menu">
+                                        <a href="#" class="action-item action-approve"><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>Approve</span></a>
+                                        <a href="#" class="action-item action-reject"><i data-lucide="x-circle" class="w-4 h-4"></i><span>Reject</span></a>
+                                        <a href="#" class="action-item action-review"><i data-lucide="eye" class="w-4 h-4"></i><span>Review</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-submit"><i data-lucide="send" class="w-4 h-4"></i><span>Submit</span></a>
+                                        <a href="#" class="action-item action-submit-change"><i data-lucide="file-pen-line" class="w-4 h-4"></i><span>Submit Change</span></a>
+                                        <hr class="my-1 border-gray-200">
+                                        <a href="#" class="action-item action-date-change"><i data-lucide="calendar-clock" class="w-4 h-4"></i><span>Date Change</span></a>
+                                        <a href="#" class="action-item action-date-change-review"><i data-lucide="calendar-search" class="w-4 h-4"></i><span>Date Change Review</span></a>
+                                    </div></td><td class="px-4 py-4" data-label="#">29</td><td class="px-4 py-4 font-medium text-gray-900" data-label="Element">Lessons Learned / Feedback loop</td><td class="px-4 py-4 text-center" data-label="Req."><i data-lucide="check" class="w-5 h-5 text-green-600" title="Required"></i></td><td class="px-4 py-4" data-label="Status"><span class="status-badge status-pending">Pending</span></td><td class="px-4 py-4" data-label="Submission"><p class="date-value">Due: 20 Aug 2025</p><p>By: Jane Doe</p></td><td class="px-4 py-4" data-label="Review"><p class="date-value">Due: 25 Aug 2025</p><p>By: A. Mishra</p></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+    
+    <!-- Floating Action Buttons -->
+    <div class="fixed bottom-8 right-8" x-data="{ open: false }" style="z-index: 100;">
+        <div class="flex items-center gap-3">
+            <!-- Always visible buttons -->
+            <button class="bg-white text-gray-800 font-semibold px-5 py-2 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2" title="Edit PPAP details">
+                <span>Edit</span> <i data-lucide="pencil" class="w-5 h-5 text-indigo-500"></i>
+            </button>
+            <button class="bg-white text-gray-800 font-semibold px-5 py-2 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2" title="Reply to comments">
+                <span>Reply</span> <i data-lucide="reply" class="w-5 h-5 text-gray-500"></i>
+            </button>
+
+            <!-- Expanded/collapsible buttons -->
+            <div id="fab-expandable" x-show="open"
+                 x-transition:enter="transition-transform transition-opacity ease-out duration-300"
+                 x-transition:enter-start="opacity-0 -translate-x-2 scale-x-0"
+                 x-transition:enter-end="opacity-100 translate-x-0 scale-x-100"
+                 x-transition:leave="transition-transform transition-opacity ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-x-0 scale-x-100"
+                 x-transition:leave-end="opacity-0 -translate-x-2 scale-x-0"
+                 class="flex items-center gap-3 transform-gpu origin-right"
+                 style="display: none;"
+                 >
+                <button class="bg-white text-gray-800 font-semibold px-5 py-2 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2" title="Update an element">
+                    <span>Update Element</span> <i data-lucide="edit" class="w-5 h-5 text-cyan-500"></i>
+                </button>
+                <button class="bg-white text-gray-800 font-semibold px-5 py-2 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2" title="Abandon this workflow">
+                    <span>Abandon</span> <i data-lucide="x-circle" class="w-5 h-5 text-red-500"></i>
+                </button>
+            </div>
+
+            <!-- Chevron Toggle Button -->
+            <button @click="open = !open; $nextTick(() => lucide.createIcons())" :aria-expanded="open.toString()" aria-controls="fab-expandable" class="bg-white text-gray-700 rounded-full p-3 shadow-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform hover:scale-110 transition-all duration-300 origin-right" :class="{ 'translate-x-1 scale-x-110 pr-4': open }">
+                <i data-lucide="chevron-left" class="w-6 h-6 transition-transform duration-300" :class="{ 'rotate-180 scale-110': open }"></i>
+            </button>
+        </div>
+    </div>
+    <div id="video-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-[100]">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl m-4 relative">
+            <button id="close-video-modal" class="absolute -top-3 -right-3 bg-white rounded-full p-2 text-gray-600 hover:text-gray-900 shadow-lg">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            <div class="p-2">
+                 <div class="aspect-w-16 aspect-h-9">
+                    <iframe id="video-iframe" src="" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            lucide.createIcons();
+
+            // Details Card Toggle
+            const detailsCardHeader = document.getElementById('detailsCardHeader');
+            const additionalDetails = document.getElementById('additionalDetails');
+            const toggleText = document.getElementById('toggleDetailsText');
+            const chevronIcon = document.getElementById('chevronIcon');
+
+            detailsCardHeader.addEventListener('click', () => {
+                const isExpanded = additionalDetails.classList.contains('expanded');
+                if (isExpanded) {
+                    additionalDetails.classList.remove('expanded');
+                    toggleText.textContent = 'More Details';
+                    chevronIcon.classList.remove('rotate-180');
+                } else {
+                    additionalDetails.classList.add('expanded');
+                    toggleText.textContent = 'Less Details';
+                    chevronIcon.classList.add('rotate-180');
+                }
+            });
+            
+
+            // Export Button Loading State
+            const exportBtn = document.getElementById('exportBtn');
+            const exportBtnText = document.getElementById('exportBtnText');
+            exportBtn.addEventListener('click', () => {
+                const originalText = exportBtnText.textContent;
+                exportBtnText.textContent = 'Exporting...';
+                exportBtn.disabled = true;
+                exportBtn.classList.add('opacity-75', 'cursor-not-allowed');
+
+                setTimeout(() => {
+                    exportBtnText.textContent = originalText;
+                    exportBtn.disabled = false;
+                    exportBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                    const notice = document.createElement('div');
+                    notice.textContent = 'Export Complete!';
+                    notice.className = 'fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg transition-opacity duration-300';
+                    document.body.appendChild(notice);
+                    setTimeout(() => {
+                        notice.classList.add('opacity-0');
+                        setTimeout(() => notice.remove(), 300);
+                    }, 2000);
+                }, 2000);
+            });
+                        const openVideoModalBtn = document.getElementById('open-video-modal');
+            const videoModal = document.getElementById('video-modal');
+            const closeVideoModalBtn = document.getElementById('close-video-modal');
+            const videoIframe = document.getElementById('video-iframe');
+            const videoSrc = "https://rapidglobalsolutions.sharepoint.com/sites/QLMFunctionalTeam/_layouts/15/stream.aspx?id=%2Fsites%2FQLMFunctionalTeam%2FShared%20Documents%2FGeneral%2FMigration%20to%20Angluar%2FPPAP%20Submission%2Emp4&ct=1757322742621&or=OWA%2DNT%2DMail&cid=6b17ed05%2Da51b%2Dfda1%2De333%2Df337f1319f06&ga=1&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2E1737287a%2De1e5%2D4cd2%2Db768%2Ddff983a43d69";
+
+            function openModal() {
+                videoIframe.src = videoSrc;
+                videoModal.classList.remove('hidden');
+                videoModal.classList.add('flex');
+                lucide.createIcons(); // Re-render icons in the modal if any
+            }
+
+            function closeModal() {
+                videoModal.classList.add('hidden');
+                videoModal.classList.remove('flex');
+                videoIframe.src = ""; // Stop the video from playing to save resources
+            }
+
+            openVideoModalBtn.addEventListener('click', openModal);
+            closeVideoModalBtn.addEventListener('click', closeModal);
+
+            // Close modal if clicking on the background overlay
+            videoModal.addEventListener('click', (event) => {
+                if (event.target === videoModal) {
+                    closeModal();
+                }
+            });
+
+            // Date processing and overdue highlighting
+            const today = new Date();
+            today.setHours(0,0,0,0); 
+
+            document.querySelectorAll('.element-table tbody tr').forEach(row => {
+                const dueDateElements = row.querySelectorAll('.date-value');
+                let isOverdue = false;
+                dueDateElements.forEach(el => {
+                    const dateText = el.textContent.replace(/^(Due:|Actual:|Approved:)\s*/, '').trim();
+                    if (dateText && el.textContent.startsWith('Due:')) {
+                        const date = new Date(dateText);
+                        const actualDateEl = Array.from(el.parentElement.children).find(child => child.textContent.includes('Actual:'));
+                        
+                        if (!isNaN(date.getTime()) && date < today && !actualDateEl) {
+                           el.classList.add('text-red-600', 'font-bold');
+                           isOverdue = true;
+                        }
+                    }
+                });
+                if(isOverdue) {
+                    row.classList.add('bg-red-50');
+                }
+            });
+
+            // Sorting logic
+            document.querySelectorAll('.sort-header').forEach(header => {
+                header.addEventListener('click', function() {
+                    const table = this.closest('table');
+                    const tbody = table.querySelector('tbody');
+                    const columnIndex = Array.from(this.parentNode.children).indexOf(this);
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    const isAscending = this.dataset.sortDir !== 'asc';
+                    
+                    rows.sort((a, b) => {
+                        const aText = a.children[columnIndex].textContent.trim();
+                        const bText = b.children[columnIndex].textContent.trim();
+                        return aText.localeCompare(bText, undefined, {numeric: true}) * (isAscending ? 1 : -1);
+                    });
+                    
+                    rows.forEach(row => tbody.appendChild(row));
+                    
+                    this.dataset.sortDir = isAscending ? 'asc' : 'desc';
+                });
+            });
+
+            // New function for phase status overview
+            function calculateAndDisplayPhaseStatus() {
+                const statusConfig = {
+                    'Approved': 'status-approved',
+                    'Interim Approved': 'status-interim-approved',
+                    'Approval Pending': 'status-approval-pending',
+                    'Review Pending': 'status-review-pending',
+                    'Requested': 'status-requested',
+                    'Rejected': 'status-rejected',
+                    'Pending': 'status-pending',
+                    'Submitted': 'status-submitted',
+                    'Reviewed': 'status-reviewed'
+                };
+
+                document.querySelectorAll('section[id^="phase"]').forEach(phaseSection => {
+                    const table = phaseSection.querySelector('.element-table');
+                    if (!table) return;
+
+                    const counts = {};
+                    Object.keys(statusConfig).forEach(status => counts[status] = 0);
+                    
+                    const rows = table.querySelectorAll('tbody tr');
+                    rows.forEach(row => {
+                        const statusBadge = row.querySelector('td[data-label="Status"] .status-badge');
+                        if (statusBadge) {
+                            const statusText = statusBadge.textContent.trim();
+                            if (counts.hasOwnProperty(statusText)) {
+                                counts[statusText]++;
+                            }
+                        }
+                    });
+
+                    const overviewContainer = phaseSection.querySelector('.phase-status-overview');
+                    if (!overviewContainer) return;
+
+                    let overviewHTML = '';
+                    for (const status in counts) {
+                        if (counts[status] > 0) {
+                            const badgeClass = statusConfig[status];
+                            overviewHTML += `
+                                <div class="flex items-center gap-1.5">
+                                    <span class="status-badge ${badgeClass}">${status}</span>
+                                    <span class="font-semibold text-gray-700 text-sm">${counts[status]}</span>
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    if (overviewHTML === '') {
+                        overviewContainer.innerHTML = '<p class="text-xs text-gray-500">No elements with trackable status in this phase.</p>';
+                    } else {
+                        overviewContainer.innerHTML = overviewHTML;
+                    }
+                });
+            }
+
+            calculateAndDisplayPhaseStatus();
+        });
+    </script>
+
+    <footer class="mt-6 p-4 flex justify-between items-center border-t border-gray-200 gap-3 sticky bottom-0 bg-white/80 backdrop-blur-sm rounded-lg shadow-sm max-w-screen-2xl mx-auto">
+        <a href="./index.html" class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-semibold flex items-center gap-2" title="Back to Hub">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Hub
+        </a>
+        <div class="text-sm text-gray-500">PPAP View • Navigate via header or hub</div>
+    </footer>
+</body>
+</html>
+
+
